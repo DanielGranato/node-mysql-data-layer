@@ -1,5 +1,20 @@
 import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import mysql from "mysql2/promise";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+export const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST || "localhost",
+  user: process.env.MYSQL_USER || "root",
+  password: process.env.MYSQL_PASSWORD || "",
+  database: process.env.MYSQL_DB_NAME || "peliculas_db",
+  port: process.env.MYSQL_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
 
@@ -30,6 +45,7 @@ async function iniciarMenu() {
   }
 
   rl.close();
+  await pool.end();
 }
 
 iniciarMenu();
