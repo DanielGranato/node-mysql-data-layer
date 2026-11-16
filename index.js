@@ -18,7 +18,50 @@ export const pool = mysql.createPool({
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
 
+async function crearTabla() {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS peliculas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      titulo VARCHAR(150) NOT NULL,
+      director VARCHAR(100),
+      anio INT NOT NULL,
+      genero VARCHAR(50) NOT NULL
+    )
+  `;
+
+  try {
+    await pool.execute(sql);
+    console.log("Tabla 'peliculas' lista");
+  } catch (error) {
+    console.error("Error al crear la tabla:", error.message);
+  }
+}
+
+async function agregarPelicula() {
+  const titulo = (await rl.question("Título: ")).trim();
+  const director = (await rl.question("Director (opcional): ")).trim();
+  const anio = Number.parseInt(await rl.question("Año: "), 10);
+  const genero = (await rl.question("Género: ")).trim();
+
+  if (!titulo || !genero || Number.isNaN(anio)) {
+    console.log("Datos inválidos: título, año y género son obligatorios");
+    return;
+  }
+
+  try {
+    const [resultado] = await pool.execute(
+      "INSERT INTO peliculas (titulo, director, anio, genero) VALUES (?, ?, ?, ?)",
+      [titulo, director || null, anio, genero]
+    );
+    console.log(`Pelicula agregada con id ${resultado.insertId}`);
+  } catch (error) {
+    console.error("Error al agregar la pelicula:", error.message);
+  }
+}
+
 async function iniciarMenu() {
+  await crearTabla();
+
   let opcion = "";
 
   while (opcion !== "3") {
@@ -34,7 +77,7 @@ async function iniciarMenu() {
         console.log("Listar peliculas: en construcción");
         break;
       case "2":
-        console.log("Agregar pelicula: en construcción");
+        await agregarPelicula()
         break;
       case "3":
         console.log("Hasta luego");
