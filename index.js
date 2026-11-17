@@ -114,17 +114,53 @@ async function actualizarPelicula() {
   }
 }
 
+async function eliminarPelicula() {
+  console.log("\n=== ELIMINAR PELICULA ===");
+
+  const id = Number.parseInt(await rl.question("Id de la pelicula: "), 10);
+  if (Number.isNaN(id)) {
+    console.log("Id inválido");
+    return;
+  }
+
+  const confirmacion = (
+    await rl.question(`¿Eliminar la pelicula ${id}? (s/n): `)
+  )
+    .trim()
+    .toLowerCase();
+  if (confirmacion !== "s") {
+    console.log("Operación cancelada");
+    return;
+  }
+
+  try {
+    const [resultado] = await pool.execute(
+      "DELETE FROM peliculas WHERE id = ?",
+      [id]
+    );
+
+    if (resultado.affectedRows === 0) {
+      console.log(`No existe una pelicula con id ${id}`);
+      return;
+    }
+    console.log(`Pelicula ${id} eliminada`);
+  } catch (error) {
+    console.error("Error al eliminar la pelicula:", error.message);
+  }
+}
+
 async function iniciarMenu() {
   await crearTabla();
 
   let opcion = "";
 
-  while (opcion !== "4") {
+  while (opcion !== "5") {
     console.log("\nSERVICIO DE PELICULAS");
     console.log("1. Listar peliculas");
     console.log("2. Agregar pelicula");
     console.log("3. Actualizar pelicula");
-    console.log("4. Salir");
+    console.log("4. Eliminar pelicula");
+    console.log("5. Salir");
 
     opcion = await rl.question("Opción: ");
 
@@ -139,6 +175,9 @@ async function iniciarMenu() {
         await actualizarPelicula();
         break;
       case "4":
+        await eliminarPelicula();
+        break;
+      case "5":
         console.log("Hasta luego");
         break;
       default:
