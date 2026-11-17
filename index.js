@@ -38,6 +38,7 @@ async function crearTabla() {
 }
 
 async function agregarPelicula() {
+  console.log("\n=== AGREGAR PELICULA ===");
   const titulo = (await rl.question("Título: ")).trim();
   const director = (await rl.question("Director (opcional): ")).trim();
   const anio = Number.parseInt(await rl.question("Año: "), 10);
@@ -59,6 +60,25 @@ async function agregarPelicula() {
   }
 }
 
+async function listarPeliculas() {
+  console.log("\n=== LISTAR PELICULAS ===");
+
+  try {
+    const [peliculas] = await pool.execute(
+      "SELECT id, titulo, director, anio, genero FROM peliculas ORDER BY id"
+    );
+
+    if (peliculas.length === 0) {
+      console.log("No hay peliculas registradas");
+      return;
+    }
+
+    console.table(peliculas);
+  } catch (error) {
+    console.error("Error al listar las peliculas:", error.message);
+  }
+}
+
 async function iniciarMenu() {
   await crearTabla();
 
@@ -74,7 +94,7 @@ async function iniciarMenu() {
 
     switch (opcion) {
       case "1":
-        console.log("Listar peliculas: en construcción");
+        await listarPeliculas();
         break;
       case "2":
         await agregarPelicula()
