@@ -79,16 +79,52 @@ async function listarPeliculas() {
   }
 }
 
+async function actualizarPelicula() {
+  console.log("\n=== ACTUALIZAR PELICULA ===");
+
+  const id = Number.parseInt(await rl.question("Id de la pelicula: "), 10);
+  if (Number.isNaN(id)) {
+    console.log("Id inválido");
+    return;
+  }
+
+  const titulo = (await rl.question("Nuevo título: ")).trim();
+  const director = (await rl.question("Nuevo director (opcional): ")).trim();
+  const anio = Number.parseInt(await rl.question("Nuevo año: "), 10);
+  const genero = (await rl.question("Nuevo género: ")).trim();
+
+  if (!titulo || !genero || Number.isNaN(anio)) {
+    console.log("Datos inválidos: título, año y género son obligatorios");
+    return;
+  }
+
+  try {
+    const [resultado] = await pool.execute(
+      "UPDATE peliculas SET titulo = ?, director = ?, anio = ?, genero = ? WHERE id = ?",
+      [titulo, director || null, anio, genero, id]
+    );
+
+    if (resultado.affectedRows === 0) {
+      console.log(`No existe una pelicula con id ${id}`);
+      return;
+    }
+    console.log(`Pelicula ${id} actualizada`);
+  } catch (error) {
+    console.error("Error al actualizar la pelicula:", error.message);
+  }
+}
+
 async function iniciarMenu() {
   await crearTabla();
 
   let opcion = "";
 
-  while (opcion !== "3") {
+  while (opcion !== "4") {
     console.log("\nSERVICIO DE PELICULAS");
     console.log("1. Listar peliculas");
     console.log("2. Agregar pelicula");
-    console.log("3. Salir");
+    console.log("3. Actualizar pelicula");
+    console.log("4. Salir");
 
     opcion = await rl.question("Opción: ");
 
@@ -100,6 +136,9 @@ async function iniciarMenu() {
         await agregarPelicula()
         break;
       case "3":
+        await actualizarPelicula();
+        break;
+      case "4":
         console.log("Hasta luego");
         break;
       default:
