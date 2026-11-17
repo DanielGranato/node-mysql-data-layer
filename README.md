@@ -15,27 +15,41 @@ A terminal application for managing movies, built while studying how a Node.js b
 ## Progress
 
 - [x] Interactive terminal menu with `readline/promises` and `async/await`
-- [ ] Connection pool in a single module, configured through environment variables
-- [ ] `SELECT` queries with result destructuring (`const [rows]`)
-- [ ] `INSERT`, `UPDATE` and `DELETE` with prepared statements (`?` placeholders)
+- [x] Connection pool configured through environment variables
+- [x] Table creation on startup (`crearTabla`, `CREATE TABLE IF NOT EXISTS`)
+- [x] `SELECT` queries with result destructuring (`const [rows]`)
+- [x] `INSERT`, `UPDATE` and `DELETE` with prepared statements (`?` placeholders)
+- [x] Error handling with `try/catch`
+- [x] Full CRUD for movies
+- [ ] Move the connection pool to its own module (`config/db.js`)
 - [ ] Data layer: all SQL for an entity in one file, the rest of the code calls functions
-- [ ] Error handling with `try/catch`
+
+## CRUD
+
+| Operation | Function | SQL |
+|---|---|---|
+| Create | `agregarPelicula` | `INSERT` |
+| Read | `listarPeliculas` | `SELECT` |
+| Update | `actualizarPelicula` | `UPDATE` |
+| Delete | `eliminarPelicula` | `DELETE` (asks for confirmation) |
+
+`UPDATE` and `DELETE` use `affectedRows` to tell whether the given id exists.
 
 ## Concepts practiced
 
 - **Connection pool**: connections are opened once and reused, instead of opening one per query
 - **async/await**: every database call returns a Promise and must be awaited
 - **Prepared statements**: values are sent separately from the SQL text, which prevents SQL injection
-- **Layered structure**: connection, data access and user interface live in separate modules
 
 ## Project structure
 
+Everything currently lives in `index.js`. Splitting it into layers is the next step (see Progress).
+
 ```
 .
-├── config/
-│   └── db.js          # connection pool (created once, imported where needed)
-├── services/          # data layer: one file per entity, all SQL lives here
-├── index.js           # terminal menu, calls the data layer
+├── database/
+│   └── schema.sql     # creates the peliculas_db database
+├── index.js           # pool, CRUD functions and terminal menu
 ├── .env.example
 ├── package.json
 └── .gitignore
@@ -43,23 +57,29 @@ A terminal application for managing movies, built while studying how a Node.js b
 
 ## How to run
 
-**1. Start MySQL/MariaDB** (for example, from the XAMPP Control Panel) and create the database used by the project.
+**1. Start MySQL/MariaDB** (for example, from the XAMPP Control Panel) and create the database by running `database/schema.sql`:
+
+```bash
+mysql -u root < database/schema.sql
+```
+
+You can also paste its content into the SQL tab of phpMyAdmin. The `peliculas` table is created by the app on startup.
 
 **2. Configure the credentials.** Copy `.env.example` to `.env` and fill in your local values:
 
 ```
 MYSQL_HOST=localhost
+MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=
-MYSQL_DB_NAME=your_database
-MYSQL_PORT=3306
+MYSQL_DB_NAME=peliculas_db
 ```
 
 **3. Install the dependencies and start the app:**
 
 ```bash
 npm install
-node index.js
+npm start
 ```
 
 ## Menu
@@ -68,7 +88,9 @@ node index.js
 SERVICIO DE PELICULAS
 1. Listar peliculas
 2. Agregar pelicula
-3. Salir
+3. Actualizar pelicula
+4. Eliminar pelicula
+5. Salir
 ```
 
 ## Notes
